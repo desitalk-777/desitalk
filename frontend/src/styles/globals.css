@@ -1,0 +1,301 @@
+@import 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Nunito:wght@300;400;500;600;700&display=swap';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --saffron: #ff6b35;
+  --saffron-light: #ff8c5a;
+  --saffron-dark: #e05520;
+  --green: #138808;
+  --navy: #000080;
+  
+  /* Light mode */
+  --bg-primary: #dae0e6;
+  --bg-card: #ffffff;
+  --bg-hover: #f6f7f8;
+  --border: #edeff1;
+  --text-primary: #1c1c1c;
+  --text-secondary: #576f76;
+  --text-muted: #878a8c;
+}
+
+.dark {
+  --bg-primary: #0f0f10;
+  --bg-card: #1a1a1b;
+  --bg-hover: #272729;
+  --border: #2d2d2e;
+  --text-primary: #d7dadc;
+  --text-secondary: #9fa3a5;
+  --text-muted: #818384;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s, color 0.2s;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--saffron);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Card styles */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.15s;
+}
+
+.card:hover {
+  border-color: var(--text-muted);
+}
+
+/* Saffron gradient */
+.gradient-saffron {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+/* Indian flag colors */
+.tricolor-bar {
+  height: 3px;
+  background: linear-gradient(to right, #ff9933 33.33%, #ffffff 33.33% 66.66%, #138808 66.66%);
+}
+
+/* Post vote styles */
+.vote-btn {
+  @apply flex items-center gap-1 px-2 py-1 rounded-full text-sm font-semibold transition-all duration-150;
+  color: var(--text-muted);
+}
+
+.vote-btn:hover, .vote-btn.active {
+  color: var(--saffron);
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.vote-btn.downvote:hover, .vote-btn.downvote.active {
+  color: #7193ff;
+  background: rgba(113, 147, 255, 0.1);
+}
+
+/* Star rating */
+.star-btn {
+  font-size: 20px;
+  cursor: pointer;
+  transition: transform 0.1s, color 0.1s;
+}
+
+.star-btn:hover, .star-btn.filled {
+  color: #f7931e;
+  transform: scale(1.1);
+}
+
+/* Verified badge */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border-radius: 50%;
+  font-size: 10px;
+  color: white;
+}
+
+/* Premium badge */
+.premium-badge {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* Input styles */
+.input {
+  @apply w-full px-4 py-3 rounded-lg border font-medium text-sm transition-all duration-150 outline-none;
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+.input:focus {
+  border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm text-white transition-all duration-150;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all duration-150;
+  border: 1.5px solid var(--saffron);
+  color: var(--saffron);
+  background: transparent;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+/* Notifications dot */
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--saffron);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* Trending badge */
+.trending-badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold;
+  background: rgba(255, 107, 53, 0.15);
+  color: var(--saffron);
+}
+
+/* Community avatar */
+.community-avatar {
+  @apply rounded-full object-cover flex-shrink-0;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+/* Animation classes */
+.slide-up { animation: slideUp 0.3s ease-out; }
+.fade-in { animation: fadeIn 0.2s ease-out; }
+
+@keyframes slideUp {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Sidebar sticky */
+.sidebar-sticky {
+  position: sticky;
+  top: 68px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+/* Content layout */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 312px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+@media (max-width: 960px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-col {
+    display: none;
+  }
+}
+
+/* Post content */
+.post-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.post-body a {
+  color: var(--saffron);
+  text-decoration: none;
+}
+
+.post-body a:hover {
+  text-decoration: underline;
+}
+
+/* Code blocks in posts */
+.post-body code {
+  background: var(--bg-hover);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+/* Mobile nav */
+@media (max-width: 640px) {
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  }
+}
