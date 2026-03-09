@@ -42,7 +42,7 @@ export default function LoginPage() {
           <h2 className="text-xl font-bold mb-6">Welcome Back 🙏</h2>
 
           {/* Google Login */}
-          <a href="/api/auth/google"
+          <a href="https://desitalk-backend.onrender.com/api/auth/google"
             className="flex items-center justify-center gap-3 w-full border rounded-lg py-3 text-sm font-semibold mb-4 hover:bg-[var(--bg-hover)] transition-colors"
             style={{ borderColor: 'var(--border)' }}>
             <FcGoogle size={20} /> Continue with Google
