@@ -32,6 +32,8 @@ const uploadRoutes = require('./routes/upload');
 require('./config/passport');
 
 const app = express();
+app.set('trust proxy', 1);
+
 const httpServer = createServer(app);
 
 // Socket.io setup
