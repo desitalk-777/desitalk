@@ -59,7 +59,7 @@ export default function App() {
         <Route path="search" element={<SearchPage />} />
         <Route path="premium" element={<PremiumPage />} />
 
-        <Route path="create" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
+        <Route path="create-post" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path="notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
         <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
