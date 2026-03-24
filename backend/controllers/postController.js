@@ -1,9 +1,6 @@
-const Post = require('../models/Post');
-const Community = require('../models/Community');
-const User = require('../models/User');
-const Notification = require('../models/Notification');
-const { asyncHandler, ErrorResponse, paginate, sendSuccess } = require('../middleware/utils');
+// Existing content above line 31...
 
+<<<<<<< HEAD
 // @desc    Get feed posts (FIXED: Shows ALL posts on New/Rising/Hot)
 // @route   GET /api/posts
 // @access  Public
@@ -392,3 +389,8 @@ async function createNotification(io, data) {
 }
 
 exports.createNotification = createNotification;
+=======
+query.community = { $in: [...user.communities, null] };
+
+// Existing content below line 31...
+>>>>>>> 0682740deff4d21331c31817c7375ac9879afac9
