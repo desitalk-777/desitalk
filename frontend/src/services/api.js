@@ -33,15 +33,15 @@ export default api;
 
 // API helper functions
 export const postAPI = {
-  getAll: (params) => api.get('/posts', { params }),
-  getOne: (id) => api.get(`/posts/${id}`),
+  getPosts: (params) => api.get('/posts', { params }),
+  getPost: (id) => api.get(`/posts/${id}`),
   create: (data, config) => api.post('/posts', data, config),
   update: (id, data) => api.put(`/posts/${id}`, data),
   delete: (id) => api.delete(`/posts/${id}`),
   vote: (id, type) => api.post(`/posts/${id}/vote`, { type }),
   bookmark: (id) => api.post(`/posts/${id}/bookmark`),
-  report: (id, data) => api.post(`/posts/${id}/report`, data), 
-  trending: (params) => api.get('/posts/trending', { params })
+  report: (id, data) => api.post(`/posts/${id}/report`, data),
+  getTrending: () => api.get('/posts/trending')
 };
 
 export const commentAPI = {
