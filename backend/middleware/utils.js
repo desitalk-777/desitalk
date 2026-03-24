@@ -14,7 +14,7 @@ class ErrorResponse extends Error {
 exports.ErrorResponse = ErrorResponse;
 
 // Pagination helper
-exports.paginate = (query, page = 1, limit = 20) => {
+exports.paginate = (page = 1, limit = 20) => {
   const pageNum = Math.max(1, parseInt(page));
   const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
   const skip = (pageNum - 1) * limitNum;
@@ -41,3 +41,17 @@ exports.formatUser = (user) => ({
   role: user.role,
   karma: user.karma
 });
+
+// Validate object ID
+exports.isValidObjectId = (id) => {
+  return id.match(/^[0-9a-fA-F]{24}$/) !== null;
+};
+
+// Generate slug
+exports.generateSlug = (text) => {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 100);
+};
