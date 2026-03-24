@@ -4,34 +4,46 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { asyncHandler, ErrorResponse, paginate, sendSuccess } = require('../middleware/utils');
 
-// @desc    Get feed posts (home)
+// @desc    Get feed posts (FIXED: Shows ALL posts on New/Rising/Hot)
 // @route   GET /api/posts
 // @access  Public
 exports.getPosts = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, sort = 'hot', community, tag } = req.query;
   const { skip, limit: lim, page: pageNum } = paginate(page, limit);
 
+  // Build query - shows ALL posts by default
   let query = { isRemoved: false };
-  if (community) query.community = community;
-  if (tag) query.tags = tag.toLowerCase();
+  
+  // Only filter by community if explicitly requested
+  if (community) {
+    query.community = community;
+  }
+  
+  // Filter by tag if specified
+  if (tag) {
+    query.tags = tag.toLowerCase();
+  }
 
+  // Determine sort order based on feed type
   let sortObj = {};
   switch (sort) {
-    case 'hot': sortObj = { hotScore: -1, createdAt: -1 }; break;
-    case 'new': sortObj = { createdAt: -1 }; break;
-    case 'top': sortObj = { voteScore: -1, createdAt: -1 }; break;
-    case 'rising': sortObj = { viewCount: -1, createdAt: -1 }; break;
-    default: sortObj = { hotScore: -1 };
+    case 'hot':
+      sortObj = { hotScore: -1, createdAt: -1 };
+      break;
+    case 'new':
+      sortObj = { createdAt: -1 }; // Newest posts first
+      break;
+    case 'top':
+      sortObj = { voteScore: -1, createdAt: -1 }; // Highest upvotes first
+      break;
+    case 'rising':
+      sortObj = { viewCount: -1, createdAt: -1 }; // Most viewed first
+      break;
+    default:
+      sortObj = { hotScore: -1 };
   }
 
-  // If user logged in, personalize feed with joined communities
-  if (req.user) {
-    const user = await User.findById(req.user.id).select('communities');
-    if (user.communities?.length > 0 && !community) {
-      query.community = { $in: user.communities };
-    }
-  }
-
+  // Fetch posts and total count
   const [posts, total] = await Promise.all([
     Post.find(query)
       .sort(sortObj)
@@ -43,7 +55,12 @@ exports.getPosts = asyncHandler(async (req, res) => {
   ]);
 
   sendSuccess(res, posts, 200, {
-    pagination: { total, page: pageNum, limit: lim, pages: Math.ceil(total / lim) }
+    pagination: { 
+      total, 
+      page: pageNum, 
+      limit: lim, 
+      pages: Math.ceil(total / lim) 
+    }
   });
 });
 
@@ -69,6 +86,8 @@ exports.getPost = asyncHandler(async (req, res, next) => {
     postObj.userVote = post.upvotes.includes(req.user.id) ? 'up' :
       post.downvotes.includes(req.user.id) ? 'down' : null;
     postObj.isBookmarked = req.user.bookmarks?.includes(post._id);
+    // Check if user can delete this post
+    postObj.canDelete = post.author.toString() === req.user.id || req.user.role === 'admin';
   }
 
   sendSuccess(res, postObj);
@@ -80,11 +99,12 @@ exports.getPost = asyncHandler(async (req, res, next) => {
 exports.createPost = asyncHandler(async (req, res, next) => {
   const { title, content, type, tags, communityId, externalLink, isNSFW, isSpoiler } = req.body;
 
+  // Validate title
   if (!title?.trim()) {
     return next(new ErrorResponse('Post title is required', 400));
   }
 
-  // Validate community
+  // Validate community if provided
   if (communityId) {
     const community = await Community.findById(communityId);
     if (!community) return next(new ErrorResponse('Community not found', 404));
@@ -104,6 +124,7 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     images = req.files.map(f => ({ url: f.path, publicId: f.filename }));
   }
 
+  // Create post
   const post = await Post.create({
     title: title.trim(),
     content: content?.trim(),
@@ -111,7 +132,7 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     images,
     externalLink,
     author: req.user.id,
-    community: communityId || null,
+    community: communityId || null, // Can be null for profile posts
     tags: tags ? tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).slice(0, 5) : [],
     isNSFW: isNSFW === 'true',
     isSpoiler: isSpoiler === 'true',
@@ -131,11 +152,15 @@ exports.createPost = asyncHandler(async (req, res, next) => {
     await Community.findByIdAndUpdate(communityId, { $inc: { postCount: 1 } });
   }
 
+  // Populate and return
   const populated = await Post.findById(post._id)
     .populate('author', 'name username avatar isPremium isVerified')
     .populate('community', 'name displayName avatar');
 
-  // Emit real-time event
+  // Emit real-time event to all connected clients
+  req.app.get('io').emit('post:new', populated);
+
+  // Also emit to community if applicable
   if (communityId) {
     req.app.get('io').to(`community:${communityId}`).emit('post:new', populated);
   }
@@ -150,11 +175,13 @@ exports.updatePost = asyncHandler(async (req, res, next) => {
   const post = await Post.findById(req.params.id);
   if (!post) return next(new ErrorResponse('Post not found', 404));
 
+  // Only author or admin can update
   if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
     return next(new ErrorResponse('Not authorized to edit this post', 403));
   }
 
   const { title, content, tags } = req.body;
+  
   if (title) post.title = title.trim();
   if (content !== undefined) post.content = content?.trim();
   if (tags) post.tags = tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).slice(0, 5);
@@ -168,26 +195,87 @@ exports.updatePost = asyncHandler(async (req, res, next) => {
   sendSuccess(res, updated);
 });
 
-// @desc    Delete post
+// @desc    Delete post (SOFT DELETE - marks as removed)
 // @route   DELETE /api/posts/:id
 // @access  Private
 exports.deletePost = asyncHandler(async (req, res, next) => {
   const post = await Post.findById(req.params.id);
   if (!post) return next(new ErrorResponse('Post not found', 404));
 
+  // Only author or admin can delete
   if (post.author.toString() !== req.user.id && req.user.role !== 'admin') {
-    return next(new ErrorResponse('Not authorized to delete this post', 403));
+    return next(new ErrorResponse('Only author or admin can delete this post', 403));
   }
 
+  // Soft delete - mark as removed
   await Post.findByIdAndUpdate(req.params.id, {
     isRemoved: true,
     removedBy: req.user.id,
+    removedReason: req.body.reason || 'Deleted by user',
     removedAt: new Date()
   });
 
+  // Decrement user post count
   await User.findByIdAndUpdate(post.author, { $inc: { postCount: -1 } });
 
   sendSuccess(res, { message: 'Post deleted successfully' });
+});
+
+// @desc    Report post (NEW FEATURE)
+// @route   POST /api/posts/:id/report
+// @access  Private
+exports.reportPost = asyncHandler(async (req, res, next) => {
+  const { reason, description } = req.body;
+
+  if (!reason) {
+    return next(new ErrorResponse('Report reason is required', 400));
+  }
+
+  const post = await Post.findById(req.params.id);
+  if (!post) return next(new ErrorResponse('Post not found', 404));
+
+  // Prevent duplicate reports from same user
+  if (post.reports?.some(r => r.reporter.toString() === req.user.id)) {
+    return next(new ErrorResponse('You have already reported this post', 400));
+  }
+
+  // Initialize reports array if not exists
+  if (!post.reports) post.reports = [];
+
+  // Add report
+  post.reports.push({
+    reporter: req.user.id,
+    reason,
+    description,
+    createdAt: new Date()
+  });
+
+  post.reportCount = post.reports.length;
+
+  // Auto-flag post if multiple reports
+  if (post.reportCount >= 3) {
+    post.aiFlag = true;
+    post.aiFlagReason = 'Multiple user reports';
+  }
+
+  await post.save();
+
+  // Notify all admins of the report
+  const admins = await User.find({ role: 'admin' });
+  admins.forEach(admin => {
+    req.app.get('io').to(`user:${admin._id}`).emit('post:reported', {
+      postId: post._id,
+      reportCount: post.reportCount,
+      reason,
+      reportedBy: req.user.username,
+      timestamp: new Date()
+    });
+  });
+
+  sendSuccess(res, { 
+    message: 'Post reported successfully', 
+    reportCount: post.reportCount 
+  });
 });
 
 // @desc    Vote on post
@@ -204,23 +292,29 @@ exports.votePost = asyncHandler(async (req, res, next) => {
 
   if (type === 'up') {
     if (hasUpvoted) {
+      // Remove upvote
       post.upvotes.pull(userId);
     } else {
+      // Add upvote and remove downvote if exists
       post.upvotes.addToSet(userId);
       post.downvotes.pull(userId);
     }
   } else if (type === 'down') {
     if (hasDownvoted) {
+      // Remove downvote
       post.downvotes.pull(userId);
     } else {
+      // Add downvote and remove upvote if exists
       post.downvotes.addToSet(userId);
       post.upvotes.pull(userId);
     }
   } else {
+    // Remove all votes
     post.upvotes.pull(userId);
     post.downvotes.pull(userId);
   }
 
+  // Recalculate vote score and hot score
   post.voteScore = post.upvotes.length - post.downvotes.length;
   post.calculateHotScore();
   await post.save();
@@ -286,7 +380,7 @@ exports.getTrending = asyncHandler(async (req, res) => {
   sendSuccess(res, posts);
 });
 
-// Helper: create notification
+// Helper: Create notification
 async function createNotification(io, data) {
   try {
     const notification = await Notification.create(data);

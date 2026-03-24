@@ -34,7 +34,8 @@ const postSchema = new mongoose.Schema({
   },
   community: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Community'
+    ref: 'Community',
+    default: null
   },
   tags: [{ type: String, lowercase: true, trim: true }],
   
@@ -47,7 +48,7 @@ const postSchema = new mongoose.Schema({
   commentCount: { type: Number, default: 0 },
   
   // Engagement
-  viewCount: { type: Number, default: 0 },
+  viewCount: { type: Number, default: 0, index: true },
   shareCount: { type: Number, default: 0 },
   bookmarkCount: { type: Number, default: 0 },
   
@@ -55,7 +56,7 @@ const postSchema = new mongoose.Schema({
   hotScore: { type: Number, default: 0, index: true },
   
   // Moderation
-  isRemoved: { type: Boolean, default: false },
+  isRemoved: { type: Boolean, default: false, index: true },
   removedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   removedReason: { type: String },
   removedAt: { type: Date },
@@ -65,12 +66,16 @@ const postSchema = new mongoose.Schema({
   isPinned: { type: Boolean, default: false },
   isLocked: { type: Boolean, default: false },
   
-  // AI moderation flags
+  // NEW: Reports/Flags
+  reports: [{
+    reporter: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    reason: String,
+    description: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
+  reportCount: { type: Number, default: 0 },
   aiFlag: { type: Boolean, default: false },
   aiFlagReason: { type: String },
-  
-  // Reports
-  reportCount: { type: Number, default: 0 },
   
   // SEO
   slug: { type: String, index: true },
@@ -81,13 +86,13 @@ const postSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Indexes
+// Indexes for better query performance
 postSchema.index({ author: 1, createdAt: -1 });
 postSchema.index({ community: 1, createdAt: -1 });
 postSchema.index({ hotScore: -1, createdAt: -1 });
+postSchema.index({ viewCount: -1, createdAt: -1 });
 postSchema.index({ tags: 1 });
 postSchema.index({ title: 'text', content: 'text', tags: 'text' });
-postSchema.index({ isRemoved: 1 });
 
 // Virtual: upvote count
 postSchema.virtual('upvoteCount').get(function () {

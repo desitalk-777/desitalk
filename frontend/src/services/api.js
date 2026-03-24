@@ -40,6 +40,7 @@ export const postAPI = {
   delete: (id) => api.delete(`/posts/${id}`),
   vote: (id, type) => api.post(`/posts/${id}/vote`, { type }),
   bookmark: (id) => api.post(`/posts/${id}/bookmark`),
+  report: (id, data) => api.post(`/posts/${id}/report`, data), 
   trending: (params) => api.get('/posts/trending', { params })
 };
 
