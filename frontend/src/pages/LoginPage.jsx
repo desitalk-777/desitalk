@@ -33,18 +33,18 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl gradient-saffron flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">DT</div>
+          <div className="w-16 h-16 rounded-2xl gradient-saffron flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3 float-anim">DT</div>
           <h1 className="font-display text-3xl font-bold" style={{ color: 'var(--saffron)' }}>DesiTalk</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>India's Discussion Platform</p>
         </div>
 
-        <div className="card p-8">
+        <div className="card p-6 sm:p-8 page-enter">
           <h2 className="text-xl font-bold mb-6">Welcome Back 🙏</h2>
 
           {/* Google Login */}
-          <a href="https://desitalk-backend.onrender.com/api/auth/google"
-            className="flex items-center justify-center gap-3 w-full border rounded-lg py-3 text-sm font-semibold mb-4 hover:bg-[var(--bg-hover)] transition-colors"
-            style={{ borderColor: 'var(--border)' }}>
+          <a href={`${import.meta.env.VITE_API_URL || 'https://desitalk-backend.onrender.com'}/api/auth/google`}
+            className="flex items-center justify-center gap-3 w-full border rounded-lg py-3 text-sm font-semibold mb-4 transition-all hover:scale-[1.01]"
+            style={{ borderColor: 'var(--border)', background: 'var(--bg-hover)' }}>
             <FcGoogle size={20} /> Continue with Google
           </a>
 
@@ -55,26 +55,41 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email - Fixed icon overlap */}
             <div>
               <label className="text-sm font-semibold block mb-1.5">Email</label>
               <div className="relative">
-                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--text-muted)' }} />
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com" className="input pl-10" required />
+                <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" size={16} style={{ color: 'var(--text-muted)' }} />
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="input"
+                  style={{ paddingLeft: '2.5rem' }}
+                  required
+                />
               </div>
             </div>
+
+            {/* Password - Fixed icon overlap */}
             <div>
               <label className="text-sm font-semibold block mb-1.5">Password</label>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2" size={16} style={{ color: 'var(--text-muted)' }} />
-                <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••" className="input pl-10 pr-10" required />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10" size={16} style={{ color: 'var(--text-muted)' }} />
+                <input
+                  type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="input"
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.75rem' }}
+                  required
+                />
                 <button type="button" onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }}>
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-1"
+                  style={{ color: 'var(--text-muted)' }}>
                   {showPass ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                 </button>
               </div>
             </div>
+
             <div className="text-right">
               <Link to="/forgot-password" className="text-xs hover:underline" style={{ color: 'var(--saffron)' }}>
                 Forgot password?
@@ -87,9 +102,7 @@ export default function LoginPage() {
 
           <p className="text-sm text-center mt-5" style={{ color: 'var(--text-muted)' }}>
             New to DesiTalk?{' '}
-            <Link to="/register" style={{ color: 'var(--saffron)' }} className="font-bold hover:underline">
-              Sign Up Free
-            </Link>
+            <Link to="/register" style={{ color: 'var(--saffron)' }} className="font-bold hover:underline">Sign Up Free</Link>
           </p>
         </div>
       </div>
